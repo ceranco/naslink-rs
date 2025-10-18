@@ -1,0 +1,7 @@
+POST http://localhost:3000/api/qbittorrent/add  HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "magnet:?xt=urn:btih:01B60917726044869FC4BBF49B781E8D6FBF9D73&dn=Tweety's+High-Flying+Adventure+(2000)+1080p+WEBRip+x264+-YTS&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://open.tracker.cl:1337/announce&tr=udp://open.demonii.com:1337/announce&tr=udp://open.stealth.si:80/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://exodus.desync.com:6969/announce&tr=udp://open.dstud.io:6969/announce&tr=udp://tracker.ololosh.space:6969/announce&tr=udp://explodie.org:6969/announce&tr=udp://tracker-udp.gbitt.info:80/announce",
+  "directory": "series"
+}
