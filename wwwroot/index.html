@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>NASlink</title>
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<style>
+		body {
+			font-family: system-ui, sans-serif;
+			max-width: 600px;
+			margin: 2rem auto;
+			line-height: 1.6;
+		}
+
+		h1 {
+			text-align: center;
+		}
+
+		h2 {
+			margin-top: 0;
+		}
+
+		ul {
+			list-style: none;
+			padding: 0;
+		}
+
+		/* horizontal list */
+		ul {
+			display: flex;
+			gap: 0.5rem 0.5rem;
+			flex-wrap: wrap;
+			align-items: center;
+			/* make the link row visually align with the form width and padding */
+			width: 100%;
+			/* match form inner spacing visually */
+			margin: 0;
+			/* remove default list spacing */
+			box-sizing: border-box;
+			justify-content: space-between;
+		}
+
+		li {
+			margin: 0;
+		}
+
+		a {
+			text-decoration: none;
+			color: #0078d7;
+			display: inline-block;
+			padding: 0.4rem 0.75rem;
+			background: #e8f3ff;
+			border: 1px solid rgba(0, 120, 215, 0.15);
+			border-radius: 999px;
+			/* pill */
+			font-size: 0.95rem;
+			line-height: 1;
+			transition: background .12s ease, transform .06s ease;
+		}
+
+		a:hover {
+			background: #d6eefd;
+			transform: translateY(-1px);
+		}
+
+		form {
+			margin-top: 1rem;
+			padding: 1rem;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			background: #fafafa;
+		}
+
+		label {
+			display: block;
+			margin-top: 1rem;
+		}
+
+		/* make form controls respect their container and avoid overflow */
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		input,
+		select,
+		button {
+			width: 100%;
+			max-width: 100%;
+			padding: 0.5rem;
+			margin-top: 0.25rem;
+		}
+
+		button {
+			margin-top: 1rem;
+			background: #0078d7;
+			color: white;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background: #005fa3;
+		}
+
+		.message {
+			margin-top: 1rem;
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>NASlink</h1>
+	<ul>
+		<li><a target="_blank" href="http://naslink.local:8090/">📁 Files</a></li>
+		<li><a target="_blank" href="http://naslink.local:8080/" rel="noreferrer">🌊 qBittorrent</a></li>
+		<li><a target="_blank" href="http://naslink.local:32400/web/index.html#!/">🎬 Plex</a></li>
+		<li><a target="_blank" href="https://knaben.eu/">🔍 Knaben</a></li>
+		<li><a target="_blank" href="https://jivaro.net/misc/apps/torrent-search-engine">🧭 Jivaro</a></li>
+	</ul>
+
+	<form id="torrentForm">
+		<h2>Add Torrent</h2>
+		<label for="torrentUrl">Torrent URL</label>
+		<input type="url" id="torrentUrl" name="torrentUrl" required>
+
+		<label for="directory">Directory</label>
+		<select id="directory" name="directory">
+			<option value="movies">Movies</option>
+			<option value="series">Series</option>
+		</select>
+
+		<button type="submit">Add Torrent</button>
+		<div id="message" class="message"></div>
+	</form>
+
+	<script>
+		document.getElementById("torrentForm").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const url = document.getElementById("torrentUrl").value;
+			const directory = document.getElementById("directory").value;
+
+			const res = await fetch("/api/qbittorrent/add", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ url, directory })
+			});
+
+			const messageEl = document.getElementById("message");
+			if (res.ok) {
+				messageEl.textContent = "✅ Torrent added successfully!";
+				messageEl.style.color = "green";
+				e.target.reset();
+			} else {
+				messageEl.textContent = "❌ Failed to add torrent.";
+				messageEl.style.color = "red";
+			}
+		});
+	</script>
+</body>
+
+</html>

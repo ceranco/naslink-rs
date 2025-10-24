@@ -3,6 +3,7 @@ use std::{path::PathBuf, sync::Arc};
 use axum::{Json, Router, extract::State, routing::get};
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct AppConfig {
@@ -41,19 +42,10 @@ async fn main() {
         config: AppConfig::from_env(),
     });
 
-    let app = Router::new()
-        .route("/json", get(json))
-        .route("/plaintext", get(plain_text))
-        .with_state(state);
+    let files = ServeDir::new("./wwwroot");
+
+    let app = Router::new().fallback_service(files).with_state(state);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn json(State(state): State<Arc<AppState>>) -> Json<AppConfig> {
-    Json(state.config.clone())
-}
-
-async fn plain_text() -> &'static str {
-    "Hello, World!"
 }
