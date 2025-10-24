@@ -9,6 +9,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use simple_logger::SimpleLogger;
 use std::{
+    env,
     error::Error,
     path::{Path, PathBuf},
     sync::Arc,
@@ -18,6 +19,7 @@ use tower_http::services::ServeDir;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct AppConfig {
+    port: u16,
     qbittorrent_host: String,
     qbittorrent_port: u16,
     movies_directory: PathBuf,
@@ -43,6 +45,7 @@ enum Directory {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            port: 3000,
             qbittorrent_host: "0.0.0.0".to_string(),
             qbittorrent_port: 8080,
             movies_directory: PathBuf::from("/media/movies"),
@@ -53,8 +56,26 @@ impl Default for AppConfig {
 
 impl AppConfig {
     fn from_env() -> Self {
-        // Placeholder for environment variable loading logic
-        Self::default()
+        let mut config = Self::default();
+
+        if let Ok(port) = env::var("APP_PORT") {
+            config.port = port.parse().unwrap_or(config.port);
+        }
+
+        if let Ok(host) = env::var("QBITTORRENT_HOST") {
+            config.qbittorrent_host = host;
+        }
+        if let Ok(port) = env::var("QBITTORRENT_PORT") {
+            config.qbittorrent_port = port.parse().unwrap_or(config.qbittorrent_port);
+        }
+        if let Ok(movies_dir) = env::var("MOVIES_DIRECTORY") {
+            config.movies_directory = PathBuf::from(movies_dir);
+        }
+        if let Ok(series_dir) = env::var("SERIES_DIRECTORY") {
+            config.series_directory = PathBuf::from(series_dir);
+        }
+
+        config
     }
 }
 
@@ -78,12 +99,8 @@ async fn main() {
         client: Client::new(),
     });
 
-    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    info!(
-        "Starting server on http://{} with {:?}",
-        listener.local_addr().unwrap(),
-        state.config
-    );
+    info!("Starting server with {:#?}", state.config);
+    let port = state.config.port;
 
     let files = ServeDir::new("./wwwroot");
     let app = Router::new()
@@ -91,6 +108,13 @@ async fn main() {
         .fallback_service(files)
         .with_state(state);
 
+    let listener = TcpListener::bind(format!("0.0.0.0:{}", port))
+        .await
+        .unwrap();
+    info!(
+        "Server listening on http://{}",
+        listener.local_addr().unwrap()
+    );
     axum::serve(listener, app).await.unwrap();
 }
 
